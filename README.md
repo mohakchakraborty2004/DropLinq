@@ -1,10 +1,6 @@
-# Express-app
+# DropLinq
 
-Get started with express
+## S3 based System Design 
 
-## For production 
-1. Run ``` npm run build ```
-2. Run ``` npm run start ```
 
-## For Testing 
-``` npm run dev ```
+
