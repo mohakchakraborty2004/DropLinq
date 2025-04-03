@@ -2,6 +2,7 @@ import express, {Request , Response} from "express";
 import AWS from "aws-sdk";
 import multer from "multer"; 
 import dotenv from "dotenv";
+import prisma from "../../db/db";
 
 dotenv.config();
 
@@ -32,7 +33,7 @@ fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Resp
 
  try {
     const response = await s3.upload(params).promise(); 
-    let FileId : string;
+    
 
     const dbRes = await prisma.file.create({
       data : {

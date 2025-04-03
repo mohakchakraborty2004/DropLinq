@@ -1,4 +1,11 @@
 import express , {Request, Response} from "express";
+import prisma from "../../db/db";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv"
+
+dotenv.config()
+
+const JWT_SECRET = process.env.JWT_SECRET as string
 
 export const userRouter = express.Router();
 
@@ -16,8 +23,7 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
             const id = response.id 
             const dbPw = response.password
             if (password === dbPw) {
-                //jwt auth 
-                const token = ""
+                const token = jwt.sign({ id }, JWT_SECRET)
                 localStorage.setItem("token", token);
                 res.status(200).json({
                     msg : "loggedin"
@@ -34,8 +40,8 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
 
             const id = response.id;
 
-            const token = ""
-            localStorage.setItem("token", token)
+            const token = jwt.sign({ id }, JWT_SECRET)
+            localStorage.setItem("token", token);
 
             res.status(200).json({
                 msg :  "account created"
@@ -49,7 +55,3 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
         })
     }
 })
-
-// userRouter.post("/login", (req : any, res: any)=> {
-    
-// })
