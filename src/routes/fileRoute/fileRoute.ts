@@ -1,4 +1,4 @@
-import express from "express";
+import express, {Request , Response} from "express";
 import AWS from "aws-sdk";
 import multer from "multer"; 
 import dotenv from "dotenv";
@@ -17,10 +17,10 @@ const upload = multer({storage : multer.memoryStorage()})
 
 export const fileRouter = express.Router();
 
-fileRouter.post("/upload", upload.single('file'), async (req : any,res: any ) => {
+fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Response ) => {
  if(!req.file) res.status(400).json({ msg : "no file found"});
 
- const {originalname ,mimetype ,buffer } = req.file
+ const {originalname ,mimetype ,buffer } = req.file as Express.Multer.File
  const s3Key = `uploads/${Date.now()}_${originalname}` ;
 
  const params = {
@@ -32,6 +32,17 @@ fileRouter.post("/upload", upload.single('file'), async (req : any,res: any ) =>
 
  try {
     const response = await s3.upload(params).promise(); 
+    let FileId : string;
+
+    const dbRes = await prisma.file.create({
+      data : {
+        fileName : originalname,
+        fileType : mimetype,
+        s3Key : s3Key
+      }
+    })    
+
+    const DownloadLink = `${req.protocol}://${req.host}/download/${dbRes.id}`
 
     if (response) {
       console.log("uploaded")
@@ -39,8 +50,7 @@ fileRouter.post("/upload", upload.single('file'), async (req : any,res: any ) =>
 
     res.json({
       msg : "uploaded", 
-      response,
-      s3Key
+      DownloadLink
     })
 
  } catch (error) {

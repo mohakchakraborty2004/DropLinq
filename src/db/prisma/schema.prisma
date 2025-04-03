@@ -14,7 +14,19 @@ datasource db {
 }
 
 //file schema 
+model file {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileType  String
+  s3Key     String   @unique
+  createdAt DateTime @default(now())
+}
 
+//userSchema
 
-
-//user schema
+model user {
+  id         String @id @default(uuid())
+  username   String @unique
+  email      String @unique
+  password   String 
+}
