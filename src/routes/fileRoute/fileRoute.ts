@@ -63,7 +63,54 @@ fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Resp
 
 
 
-fileRouter.get("/download/:fileId", (req: any, res: any) => {
+fileRouter.get("/download/:fileId", async (req: Request, res: Response) => {
+  const { fileId } = req.params
 
+  if(!fileId) {
+    res.status(404).json({
+      msg : "file not found"
+    })
+  }
+
+  try {
+    const file = await prisma.file.findUnique({
+      where : {
+        id : fileId
+      }
+    })
+
+    if(!file) {
+      res.status(404).json({
+        msg : "file not found in db"
+      })
+    }
+
+    const s3key = file?.s3Key as string
+    const filename = file?.fileType as string
+
+    const params = {
+      Bucket : bucket_name,
+      Key : s3key
+    }
+
+    const s3Stream = s3.getObject(params).createReadStream()
+
+    res.setHeader('Content-Disposition', `attchment; filename=${file?.fileName}`)
+    res.setHeader('Content-Type', filename )
+
+    s3Stream.pipe(res);
+
+    s3Stream.on('error', (err) => {
+      console.log("error occured in download , s3stream error");
+      res.status(500).json({
+        msg : "streaming error, please try again"
+      })
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      msg : "internal server error"
+    })
+  }
 })
 
