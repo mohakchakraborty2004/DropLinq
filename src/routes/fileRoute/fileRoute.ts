@@ -3,6 +3,7 @@ import AWS from "aws-sdk";
 import multer from "multer"; 
 import dotenv from "dotenv";
 import prisma from "../../db/db";
+import { FileLimiter } from "../../utils/rateLimiter";
 
 dotenv.config();
 
@@ -17,6 +18,9 @@ const s3 = new AWS.S3({
 const upload = multer({storage : multer.memoryStorage()})
 
 export const fileRouter = express.Router();
+
+//rate-limit
+fileRouter.use(FileLimiter);
 
 fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Response ) => {
  if(!req.file) res.status(400).json({ msg : "no file found"});

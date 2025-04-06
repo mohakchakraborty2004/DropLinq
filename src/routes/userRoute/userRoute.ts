@@ -2,12 +2,16 @@ import express , {Request, Response} from "express";
 import prisma from "../../db/db";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv"
+import { UserLimiter } from "../../utils/rateLimiter";
 
 dotenv.config()
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
 export const userRouter = express.Router();
+
+//rate-limit
+userRouter.use(UserLimiter);
 
 userRouter.post("/signup",async (req : Request , res: Response)=> {
     const {username , email, password} = req.body;
@@ -24,9 +28,9 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
             const dbPw = response.password
             if (password === dbPw) {
                 const token = jwt.sign({ id }, JWT_SECRET)
-                localStorage.setItem("token", token);
                 res.status(200).json({
-                    msg : "loggedin"
+                    msg : "loggedin",
+                    token
                 })
             }
         } else {
@@ -41,10 +45,9 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
             const id = response.id;
 
             const token = jwt.sign({ id }, JWT_SECRET)
-            localStorage.setItem("token", token);
-
             res.status(200).json({
-                msg :  "account created"
+                msg :  "account created",
+                token
             })
         }
 
