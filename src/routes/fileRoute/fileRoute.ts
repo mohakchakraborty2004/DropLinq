@@ -4,6 +4,7 @@ import multer from "multer";
 import dotenv from "dotenv";
 import prisma from "../../db/db";
 import { FileLimiter } from "../../utils/rateLimiter";
+import { AuthMiddleware } from "../../middleware/AuthMiddleware";
 
 dotenv.config();
 
@@ -21,12 +22,20 @@ export const fileRouter = express.Router();
 
 //rate-limit
 fileRouter.use(FileLimiter);
+fileRouter.use(AuthMiddleware);
 
 fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Response ) => {
  if(!req.file) res.status(400).json({ msg : "no file found"});
 
  const {originalname ,mimetype ,buffer } = req.file as Express.Multer.File
- const s3Key = `uploads/${Date.now()}_${originalname}` ;
+ const { size } = req.file as Express.Multer.File
+  const s3Key = `uploads/${Date.now()}_${originalname}` ;
+
+  if(size > 5000000) {
+    res.json({
+      msg : "file size exceeded, sorry!"
+    })
+  }
 
  const params = {
     Bucket : bucket_name,
@@ -43,21 +52,23 @@ fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Resp
       data : {
         fileName : originalname,
         fileType : mimetype,
-        s3Key : s3Key
+        s3Key : s3Key,
+        size : size
       }
     })    
 
-    const DownloadLink = `${req.protocol}://${req.host}/download/${dbRes.id}`
+    const DownloadLink = `${req.protocol}://${process.env.HOST || `localhost:8000` }/download/${dbRes.id}`
 
     if (response) {
+      res.status(200).json({
+        msg : "uploaded", 
+        DownloadLink
+      })
+  
       console.log("uploaded")
     }
 
-    res.json({
-      msg : "uploaded", 
-      DownloadLink
-    })
-
+  
  } catch (error) {
    console.error("S3 upload error:", error);
    res.status(500).json({ msg: "Upload failed" });
@@ -129,14 +140,16 @@ fileRouter.get("/:fileId", async(req : Request, res: Response) => {
         }, 
         select : {
           fileName : true,
-          fileType : true
+          fileType : true,
+          size : true
         }
       })
 
       if(response) {
         res.status(200).json({
           fileName : response.fileName,
-          fileType : response.fileType
+          fileType : response.fileType,
+          size : response.size
         })
       }
       res.status(404).json({
@@ -147,3 +160,7 @@ fileRouter.get("/:fileId", async(req : Request, res: Response) => {
     }
 })
 
+
+fileRouter.get("/health/check", async(req: Request, res: Response)=> {
+  res.json("working")
+})

@@ -1,7 +1,7 @@
 // entry point file 
 import  express  from "express";
 import cors from "cors";
-import Auth from "./middleware/AuthMiddleware";
+//import AuthM from "./middleware/AuthMiddleware";
 import { fileRouter } from "./routes/fileRoute/fileRoute";
 import { userRouter } from "./routes/userRoute/userRoute";
 
