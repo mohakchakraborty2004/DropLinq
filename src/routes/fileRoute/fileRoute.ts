@@ -118,3 +118,32 @@ fileRouter.get("/download/:fileId", async (req: Request, res: Response) => {
   }
 })
 
+fileRouter.get("/:fileId", async(req : Request, res: Response) => {
+    const { fileId } = req.params
+    console.log(fileId);
+    //322d4620-5300-4401-9c28-9a700a7cb6bd
+    try {
+      const response = await prisma.file.findUnique({
+        where :{
+          id : fileId
+        }, 
+        select : {
+          fileName : true,
+          fileType : true
+        }
+      })
+
+      if(response) {
+        res.status(200).json({
+          fileName : response.fileName,
+          fileType : response.fileType
+        })
+      }
+      res.status(404).json({
+        msg : "no file found"
+      })
+    } catch (error) {
+      
+    }
+})
+
