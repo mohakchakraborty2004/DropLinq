@@ -30,7 +30,7 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
                 const token = jwt.sign({ id }, JWT_SECRET)
                 res.status(200).json({
                     msg : "loggedin",
-                    token
+                    token : token
                 })
             }
         } else {
@@ -47,7 +47,7 @@ userRouter.post("/signup",async (req : Request , res: Response)=> {
             const token = jwt.sign({ id }, JWT_SECRET)
             res.status(200).json({
                 msg :  "account created",
-                token
+                token : token
             })
         }
 

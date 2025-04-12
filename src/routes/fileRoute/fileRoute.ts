@@ -21,10 +21,9 @@ const upload = multer({storage : multer.memoryStorage()})
 export const fileRouter = express.Router();
 
 //rate-limit
-fileRouter.use(FileLimiter);
-fileRouter.use(AuthMiddleware);
+ fileRouter.use(FileLimiter);
 
-fileRouter.post("/upload", upload.single('file'), async (req : Request,res: Response ) => {
+fileRouter.post("/upload", AuthMiddleware,  upload.single('file'), async (req : Request,res: Response ) => {
  if(!req.file) res.status(400).json({ msg : "no file found"});
 
  const {originalname ,mimetype ,buffer } = req.file as Express.Multer.File
@@ -129,7 +128,7 @@ fileRouter.get("/download/:fileId", async (req: Request, res: Response) => {
   }
 })
 
-fileRouter.get("/:fileId", async(req : Request, res: Response) => {
+fileRouter.get("/:fileId", AuthMiddleware, async(req : Request, res: Response) => {
     const { fileId } = req.params
     console.log(fileId);
     //322d4620-5300-4401-9c28-9a700a7cb6bd
@@ -164,3 +163,5 @@ fileRouter.get("/:fileId", async(req : Request, res: Response) => {
 fileRouter.get("/health/check", async(req: Request, res: Response)=> {
   res.json("working")
 })
+
+// 148 - 60 
