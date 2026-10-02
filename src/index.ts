@@ -17,6 +17,10 @@ app.use(express.json());
 app.use("/api/v1/file", fileRouter);
 app.use("/api/v1/user", userRouter);
 
-app.listen(PORT, () => {
+// Vercel invokes the Express application as a serverless handler. Keep the
+// local listener for development and traditional Node.js deployments.
+if (!process.env.VERCEL) app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-  });
+});
+
+export default app;
